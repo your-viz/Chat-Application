@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>WebSocket Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="chat-container">
+    <div class="chat-header" id="usernameDisplay"></div>
+
+    <div id="messages" class="chat-messages"></div>
+
+    <div class="chat-input">
+      <input id="msg" placeholder="Type message..." />
+      <button onclick="send()">Send</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let username = "";
+
+    while (!username) {
+      username = prompt("Enter your name:");
+    }
+
+    document.getElementById("usernameDisplay").innerText = username;
+
+    function send() {
+      const input = document.getElementById("msg");
+      if (!input.value.trim()) return;
+
+      socket.emit("chat message", {
+        user: username,
+        message: input.value
+      });
+
+      input.value = "";
+    }
+
+    socket.on("chat message", (data) => {
+      const messages = document.getElementById("messages");
+      const div = document.createElement("div");
+
+      const isMine = data.user === username;
+      div.className = isMine ? "message sent" : "message received";
+
+      div.innerHTML = `
+      <div class="user">${data.user}</div>
+      <div>${data.message}</div>
+      <div class="time">${data.time}</div>
+    `;
+
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    });
+  </script>
+
+</body>
+
+</html>
